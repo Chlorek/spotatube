@@ -32,28 +32,22 @@ def main():
 	
 	args = parser.parse_args()
 
-	if not args.open and not args.clip:
-		print('At least one action is required (--open and/or --clip)')
-		return
-
 	search_string = getTrackSearchString(args.artists)
-	search_url = getSearchUrl(search_string + (' (Original Mix)'.encode('ascii') if args.originalmix and not re.search(re.compile('(?i)original'.encode('ascii')), search_string) else ''.encode('ascii')))
+	url = getSearchUrl(search_string + (' (Original Mix)'.encode('ascii') if args.originalmix and not re.search(re.compile('(?i)original'.encode('ascii')), search_string) else ''.encode('ascii')))
 
-	if args.page == 'search':
-		if args.open:
-			webbrowser.open(search_url, new=0, autoraise=args.foreground)
-		if args.clip:
-			app.clipboard().setText(search_url)
-	elif args.page == 'track':
-		print('Searching for matches...')
-		html = urllib.request.urlopen(search_url)
+	if args.page == 'track':
+		print('Searching for matches...', file=sys.stderr)
+		html = urllib.request.urlopen(url)
 		videos = re.findall(r'href=\"\/watch\?v=(.{11})', html.read().decode())
-		video_url = 'https://youtube.com/watch?v=' + videos[0]
-		if args.open:
-			webbrowser.open(video_url, new=0, autoraise=args.foreground)
-		if args.clip:
-			app.clipboard().setText(video_url)
-	print('All done.')
+		url = 'https://youtube.com/watch?v=' + videos[0]
+
+	if args.open:
+		webbrowser.open(url, new=0, autoraise=args.foreground)
+	if args.clip:
+		app.clipboard().setText(url)
+	print(url)
+
+	print('All done.', file=sys.stderr)
 
 if __name__ == "__main__":
 	app = QtGui.QApplication(sys.argv);
